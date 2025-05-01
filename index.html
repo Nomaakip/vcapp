@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="styles.css" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="container">
+      <div id="videoDiv">
+        <video
+          id="localVideo"
+          autoplay
+          muted
+          playsinline
+          height="400"
+          width="400"
+        ></video>
+        <video
+          id="remoteVideo"
+          autoplay
+          playsinline
+          height="400"
+          width="400"
+        ></video>
+      </div>
+      <div id="userInfo">
+      <span id="peerId">loading</span>
+      <br />
+      </div>
+      <input id="peerInput" type="text" placeholder="peer id" />
+      <button id="connectButton">Connect</button>
+      <br />
+      <span id="sendLabel">send</span>
+      <input id="messageInput" type="text" placeholder="message" />
+      <button id="sendButton">Send</button>
+      <br />
+      <span id="callLabel">call</span>
+      <button id="callButton">Call</button>
+    </div>
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const connectButton = document.querySelector("#connectButton");
+        const sendButton = document.querySelector("#sendButton");
+        const callButton = document.querySelector("#callButton");
+        const localVideo = document.querySelector("#localVideo");
+
+        let mediaStream;
+        let storedPeerId;
+
+        navigator.mediaDevices
+          .getUserMedia({ video: true, audio: true })
+          .then((stream) => {
+            mediaStream = stream;
+            localVideo.srcObject = mediaStream;
+          })
+          .catch((err) => {
+            console.error("Failed to get media stream:", err);
+          });
+
+        var peer = new Peer();
+
+        peer.on("open", function (id) {
+          const peerId = document.querySelector("#peerId");
+          peerId.textContent = `ur peer id is: ${id}`;
+        });
+
+        peer.on("connection", (conn) => {
+          conn.on("data", (data) => {
+            console.log("Received from peer:", data);
+          });
+
+          conn.on("open", () => {
+            conn.send("Hello from receiver!");
+
+            sendButton.addEventListener("click", function () {
+              const messageInput = document
+                .querySelector("#messageInput")
+                .value.trim();
+              conn.send(messageInput);
+            });
+
+            callButton.addEventListener("click", function () {
+              var call = peer.call(storedPeerId, mediaStream);
+            });
+          });
+        });
+
+        peer.on("call", function (call) {
+          call.answer(mediaStream);
+
+          call.on("stream", function (stream) {
+            document.querySelector("#remoteVideo").srcObject = stream;
+          });
+        });
+
+        connectButton.addEventListener("click", function () {
+          let otherPeerId = document.querySelector("#peerInput");
+          storedPeerId = otherPeerId.value.trim();
+          var conn = peer.connect(otherPeerId.value.trim());
+
+          otherPeerId.value = "";
+
+          conn.on("open", function () {
+            sendButton.addEventListener("click", function () {
+              const messageInput = document
+                .querySelector("#messageInput")
+                .value.trim();
+              conn.send(messageInput);
+            });
+
+            callButton.addEventListener("click", function () {
+              var call = peer.call(storedPeerId, mediaStream);
+
+              call.on("stream", function (stream) {
+                document.querySelector("#remoteVideo").srcObject = stream;
+              });
+            });
+
+            conn.on("data", function (data) {
+              console.log("Received", data);
+            });
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
