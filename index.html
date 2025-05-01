@@ -8,6 +8,13 @@
   </head>
   <body>
     <div id="container">
+      <div id="connectDiv">
+        <div id="userInfo">
+        <span id="peerId">loading</span>
+        </div>
+        <input id="peerInput" type="text" placeholder="peer id" />
+        <button id="connectButton">Connect</button>
+      </div>
       <div id="videoDiv">
         <video
           id="localVideo"
@@ -25,17 +32,10 @@
           width="400"
         ></video>
       </div>
-      <div id="userInfo">
-      <span id="peerId">loading</span>
-      <br />
-      </div>
-      <input id="peerInput" type="text" placeholder="peer id" />
-      <button id="connectButton">Connect</button>
-      <br />
+
       <span id="sendLabel">send</span>
       <input id="messageInput" type="text" placeholder="message" />
       <button id="sendButton">Send</button>
-      <br />
       <span id="callLabel">call</span>
       <button id="callButton">Call</button>
     </div>
